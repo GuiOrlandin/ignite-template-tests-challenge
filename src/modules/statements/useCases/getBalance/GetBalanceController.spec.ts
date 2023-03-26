@@ -6,18 +6,19 @@ import { app } from "../../../../app";
 
 let connection: Connection;
 
-describe("Show user profile Controller", () => {
+describe("Get Balance Controller", () => {
   beforeAll(async () => {
     connection = await createConnections();
     await connection.runMigrations();
-  });
 
-  it("should be able to show user profile", async () => {
     await request(app).post("/api/v1/users").send({
       name: "Guilherme",
       email: "guilherme@email.com.br",
       password: "admin",
     });
+  });
+
+  it("should be able to show Balance", async () => {
     const userAuthenticate = await request(app).post("/api/v1/sessions").send({
       email: "guilherme@email.com.br",
       password: "admin",
@@ -25,37 +26,52 @@ describe("Show user profile Controller", () => {
 
     const { token } = userAuthenticate.body;
 
+    await request(app)
+      .post("/api/v1/statements/deposit")
+      .send({
+        amount: 200,
+        description: "Deposit",
+      })
+      .set({
+        Authorization: `Bearer ${token}`,
+      });
+
+    await request(app)
+      .post("/api/v1/statements/withdraw")
+      .send({
+        amount: 100,
+        description: "Withdraw",
+      })
+      .set({
+        Authorization: `Bearer ${token}`,
+      });
+
     const response = await request(app)
-      .get("/api/v1/profile")
+      .get("/api/v1/statements/balance")
       .set({
         Authorization: `Bearer ${token}`,
       });
 
     expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveProperty("statement");
+    expect(response.body).toHaveProperty("balance");
   });
 
-  it("should not be able to show user profile with invalid token", async () => {
+  it("should not be able to show Balance with invalid token", async () => {
     const token = "invalidToken";
 
-    const response = await request(app)
-      .get("/api/v1/profile")
+    await request(app)
+      .post("/api/v1/statements/deposit")
+      .send({
+        amount: 300,
+        description: "Deposit",
+      })
       .set({
         Authorization: `Bearer ${token}`,
       });
 
-    expect(response.statusCode).toBe(401);
-  });
-
-  it("should not be able to show user profile with unauthenticated user", async () => {
-    const userAuthenticate = await request(app).post("/api/v1/sessions").send({
-      email: "incorrectemail@email.com.br",
-      password: "incorrectpassword",
-    });
-
-    const { token } = userAuthenticate.body;
-
     const response = await request(app)
-      .get("/api/v1/profile")
+      .get("/api/v1/statements/balance")
       .set({
         Authorization: `Bearer ${token}`,
       });
