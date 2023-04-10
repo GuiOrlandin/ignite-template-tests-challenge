@@ -18,6 +18,7 @@ export class accountsTable1616682561481 implements MigrationInterface {
           {
             name: "sender_id",
             type: "uuid",
+            isNullable: true,
           },
           {
             name: "description",
@@ -32,7 +33,7 @@ export class accountsTable1616682561481 implements MigrationInterface {
           {
             name: "type",
             type: "enum",
-            enum: ["deposit", "withdraw"],
+            enum: ["deposit", "withdraw", "transfer"],
           },
           {
             name: "created_at",

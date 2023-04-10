@@ -15,16 +15,16 @@ export class CreateStatementController {
     const { amount, description } = request.body;
 
     const splittedPath = request.originalUrl.split("/");
-    const type = splittedPath[splittedPath.length - 1] as OperationType;
 
     const createStatement = container.resolve(CreateStatementUseCase);
+
+    const type = splittedPath[splittedPath.length - 1] as OperationType;
 
     const statement = await createStatement.execute({
       user_id,
       type,
       amount,
       description,
-      sender_id: user_id,
     });
 
     return response.status(201).json(statement);
